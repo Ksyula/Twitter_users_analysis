@@ -71,7 +71,8 @@ datatable(tlabs,rownames = FALSE, options = list(pageLength = 7))
 library(ggmap) # interacts with Google Maps to retrieve the coordinates from the location
 library(purrr) # map - function for capturing both latitude and longitude in a single column of the dataframe
 
-library(googleway) # https://cran.r-project.org/web/packages/googleway/vignettes/googleway-vignette.html#api-key
+# alternative to ggmap but requires api-key with billing account
+# library(googleway) # https://cran.r-project.org/web/packages/googleway/vignettes/googleway-vignette.html#api-key
 
 # get both latitude and longitude from Google Maps (ggmap::geocode) of tlabs$location 
 # to one new column 'longlat' using purrr::map function for just one pass
@@ -112,7 +113,7 @@ map <- world +
                               '<br /> created : ', created_at),
                  size = followers),
              colour = 'purple', alpha = .5) +
-  scale_size_continuous(range = c(1, 8), breaks = c(2000, 5000, 10000, 90000, 150000)) +
+  scale_size_continuous(range = c(1, 8), breaks = c(2000, 5000, 10000, 20000, 35000)) +
   labs(size = 'Followers')
 
 # how to save graphs - http://blog.revolutionanalytics.com/2009/01/10-tips-for-making-your-r-graphics-look-their-best.html
@@ -123,14 +124,15 @@ map <- world +
 # save pic in a vector-based format (scale-independent) 
 # png(file="mygraphic.png",width=800)
 # par(mar=c(5,3,2,2)+0.1) # To remove the space reserved for labels
-# map
+
 # dev.off()
 
 # save pic in a pixel-based format instead - width=800 is a good choice for a full-screen graphic; 
 # more than 1200 pixels in either direction - high resolution
 # use height= OR width= but not both, to preserve aspect ratio
 par(mar=c(5,3,2,2)+0.1)
-ggsave("map.png", map, device = png(), units = "in", width=13, dpi = 300)
+map
+ggsave("map1.png", map, device = png(), units = "in", width=13, dpi = 300)
 
 ggplotly(map, tooltip = c('text', 'size'))
 
@@ -165,6 +167,8 @@ map_optimized
 # add frame=created_at aesthetic with cumulative = TRUE to the ggplot; it ignotes it, but gganimate reads it
 # add some empty frames at the end as well to see the final composition a bit longer
 
+tlabs$created_at_month <- as.Date(tlabs$created_at_month)
+
 ghost_points_ini <- data.frame(
   created_at_month = seq(as.Date('2010-02-01'),
                    as.Date('2010-02-01'),
@@ -178,7 +182,7 @@ ghost_points_fin <- data.frame(
                    by = 'month'),
   followers = 0, lon = 0, lat = 0)
 
-map <- world +
+map1 <- world +
   geom_point(data = tlabs, aes(x = lon, y = lat, size = followers, 
                  frame = created_at_month, cumulative = TRUE),
              colour = 'purple', alpha = .5) +
@@ -188,10 +192,10 @@ map <- world +
   geom_point(data = ghost_points_fin, aes(x = lon, y = lat, size = followers, # this is the final transparent frames
                  frame = created_at_month, cumulative = TRUE),
               alpha = 0) +
-  scale_size_continuous(range = c(1, 8), breaks = c(2000, 5000, 10000, 90000, 150000)) +
+  scale_size_continuous(range = c(1, 8), breaks = c(2000, 5000, 10000, 20000, 35000)) +
   labs(size = 'Followers') 
 
-gganimate(map, interval = 0.2, "output.gif", ani.width = 1000, ani.height = 600)
+gganimate(map1, interval = 0.2, "output.gif", ani.width = 1000)
 
 ############### 3. Linear growth of number of followers over time (animation)
 
@@ -226,9 +230,8 @@ map_frames <- world +
   geom_point(data = ghost_points_fin, aes(x = lon, y = lat, size = est_followers,
                  frame = date),
               colour = 'purple', alpha = .5) +
-  scale_size_continuous(range = c(1, 8), breaks = c(2000, 5000, 10000, 90000, 150000)) +
+  scale_size_continuous(range = c(1, 8), breaks = c(2000, 5000, 10000, 20000, 35000)) +
   labs(size = 'Followers')
 
-ani.options(interval = .05)
-gganimate(map_frames, interval = .1, "output_growth.gif", ani.width = 1000, ani.height = 600)
+gganimate(map_frames, interval = .1, "output_growth.gif", ani.width = 1000)
 
