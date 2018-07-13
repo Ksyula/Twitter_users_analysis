@@ -132,7 +132,7 @@ map <- world +
 # use height= OR width= but not both, to preserve aspect ratio
 par(mar=c(5,3,2,2)+0.1)
 map
-ggsave("map1.png", map, device = png(), units = "in", width=13, dpi = 300)
+ggsave("pictures/map.png", map, device = png(), units = "in", width=13, dpi = 300)
 
 ggplotly(map, tooltip = c('text', 'size'))
 
@@ -161,13 +161,19 @@ add_markers(x = ~lon,
                             '<br /> created: ', created_at,
                             '<br /> followers: ', followers)) %>%
 layout(geo = g)
-map_optimized
+
+map_optimized_plotly <- ggplotly(map_optimized, tooltip = c('text', 'size'))
+map_optimized_plotly
+# api_create(map_optimized_plotly, filename = "World_map_optimized")
+# https://plot.ly/~Ksyula/1/#/
+
 ############### 3. Data Animation
 # add an empty frame at the beginning so that the first frame you see is just the empty map
 # add frame=created_at aesthetic with cumulative = TRUE to the ggplot; it ignotes it, but gganimate reads it
 # add some empty frames at the end as well to see the final composition a bit longer
 
 tlabs$created_at_month <- as.Date(tlabs$created_at_month)
+tlabs$created_at <- as.Date(tlabs$created_at)
 
 ghost_points_ini <- data.frame(
   created_at_month = seq(as.Date('2010-02-01'),
@@ -178,7 +184,7 @@ ghost_points_ini <- data.frame(
 
 ghost_points_fin <- data.frame(
   created_at_month = seq(as.Date('2018-07-01'),
-                   as.Date('2018-09-01'),
+                   as.Date('2019-07-01'),
                    by = 'month'),
   followers = 0, lon = 0, lat = 0)
 
@@ -195,43 +201,42 @@ map1 <- world +
   scale_size_continuous(range = c(1, 8), breaks = c(2000, 5000, 10000, 20000, 35000)) +
   labs(size = 'Followers') 
 
-gganimate(map1, interval = 0.2, "output.gif", ani.width = 1000)
+gganimate(map1, interval = 0.2, "pictures/output_appears_per_months.gif", ani.width = 1000)
 
-############### 3. Linear growth of number of followers over time (animation)
+############### 3. Linear growth of number of followers over time by months (animation)
 
-dates <- data.frame(value = seq(min(tlabs$created_at_month), max(tlabs$created_at_month), by='month'))
+months <- data.frame(value = seq(min(tlabs$created_at_month), max(tlabs$created_at_month), by='month'))
 
-library(tidyr)
 # expand dataset
 tlabs_frames <- tlabs %>%
   select(screen_name) %>%
-  expand(screen_name, date = dates$value) %>%
+  expand(screen_name, date = months$value) %>%
   right_join(tlabs, by = 'screen_name') %>%
   filter(date > created_at_month) %>%
-  mutate(age_total = as.numeric(age_months, units = 'months'),
+  mutate(age_total_month = as.numeric(age_months, units = 'months'),
          age_at_month = as.numeric(interval(ymd(created_at_month), ymd(date)) %/% months(1)),
-         est_followers = ((followers - 1) / age_total) * age_at_month)
+         est_followers_month = ((followers - 1) / age_total_month) * age_at_month)
 
 ghost_points_ini <-  ghost_points_ini %>%
   mutate(date = created_at_month,
-         est_followers = 0)
+         est_followers_month = 0)
 
 ghost_points_fin <-  ghost_points_fin %>%
   expand(date = created_at_month, tlabs) %>%
-  select(date, est_followers = followers, lon, lat)
+  select(date, est_followers_month = followers, lon, lat)
 
 map_frames <- world +
-  geom_point(data = tlabs_frames, aes(x = lon, y = lat, size = est_followers, 
+  geom_point(data = tlabs_frames, aes(x = lon, y = lat, size = est_followers_month, 
                  frame = date),
               colour = 'purple', alpha = .5) +
-  geom_point(data = ghost_points_ini,aes(x = lon, y = lat, size = est_followers,
+  geom_point(data = ghost_points_ini,aes(x = lon, y = lat, size = est_followers_month,
                  frame = date),
               alpha = 0) +
-  geom_point(data = ghost_points_fin, aes(x = lon, y = lat, size = est_followers,
+  geom_point(data = ghost_points_fin, aes(x = lon, y = lat, size = est_followers_month,
                  frame = date),
               colour = 'purple', alpha = .5) +
   scale_size_continuous(range = c(1, 8), breaks = c(2000, 5000, 10000, 20000, 35000)) +
   labs(size = 'Followers')
 
-gganimate(map_frames, interval = .1, "output_growth.gif", ani.width = 1000)
+gganimate(map_frames, interval = .25, "pictures/output_growth_per_months.gif", ani.width = 1000)
 
