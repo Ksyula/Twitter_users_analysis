@@ -6,3 +6,4 @@ It made a lot of fun to me to play aroung with Twitter API, Google maps API and 
 I have changed some properties in the project, such as:
 - visualisation by hash tag #T-labs 
 - time intervals are in months instead of days since my dataset spans almost 8 years and iterates by months are more appropriate
+You are welcome to find the resulted dynamic and static visualisation in pictures folder 
