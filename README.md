@@ -8,3 +8,5 @@ I have changed some properties in the project, such as:
 - time intervals are in months instead of days since my dataset spans almost 8 years and iterates by months are more appropriate
 
 You are welcome to find the resulted dynamic and static visualisation in pictures folder 
+
+Check out the result <a href="https://github.com/Ksyula/Twitter_users_analysis/blob/master/pictures/output_growth_per_months.gif">here!</a>
